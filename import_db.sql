@@ -79,4 +79,4 @@ INSERT INTO
   replies (body, question_id, parent_reply_id, user_id)
 VALUES
   ('I don''t know', (SELECT id FROM questions WHERE title = 'Coffee'), NULL, (SELECT id FROM users WHERE fname = 'Matthew' AND lname = 'Kerchner')),
-  ('I don''t know', (SELECT id FROM questions WHERE title = 'Coffee'), NULL, (SELECT id FROM users WHERE fname = 'Nandini' AND lname = 'Adhyapaka'));
+  ('Whatever', (SELECT id FROM questions WHERE title = 'Coffee'), NULL, (SELECT id FROM users WHERE fname = 'Nandini' AND lname = 'Adhyapaka'));
