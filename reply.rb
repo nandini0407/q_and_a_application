@@ -1,10 +1,12 @@
-class Replies
+require_relative 'questions_db'
+
+class Reply
   attr_reader :id
   attr_accessor :body, :question_id, :parent_reply_id, :user_id
 
   def self.all
     data = QuestionsDB.instance.execute("SELECT * FROM replies")
-    data.map { |datum| Replies.new(datum) }
+    data.map { |datum| Reply.new(datum) }
   end
 
   def self.find_by_id(id)
@@ -18,7 +20,7 @@ class Replies
     SQL
     return nil if reply.empty?
 
-    Replies.new(reply.first)
+    Reply.new(reply.first)
   end
 
   def self.find_by_user_id(user_id)
@@ -32,7 +34,7 @@ class Replies
     SQL
 
     return nil if replies.empty?
-    replies.map { |reply| Replies.new(reply) }
+    replies.map { |reply| Reply.new(reply) }
   end
 
   def self.find_by_question_id(question_id)
@@ -46,7 +48,7 @@ class Replies
     SQL
 
     return nil if replies.empty?
-    replies.map { |reply| Replies.new(reply) }
+    replies.map { |reply| Reply.new(reply) }
   end
 
   def initialize(options)
@@ -58,19 +60,18 @@ class Replies
   end
 
   def author
-    Users.find_by_id(@user_id)
+    User.find_by_id(@user_id)
   end
 
   def question
-    Questions.find_by_id(@question_id)
+    Question.find_by_id(@question_id)
   end
 
   def parent_reply
-    Replies.find_by_id(@parent_reply_id)
+    Reply.find_by_id(@parent_reply_id)
   end
 
   def child_replies
-    # replies = Replies.find_by_question_id(@question_id)
     children = QuestionsDB.instance.execute(<<-SQL, @id)
       SELECT
         *
@@ -81,7 +82,37 @@ class Replies
     SQL
 
     return nil if children.empty?
-    children.map { |child| Replies.new(child) }
+    children.map { |child| Reply.new(child) }
+  end
+
+  def save
+    if @id
+      update
+    else
+      insert
+    end
+  end
+
+  def update
+    QuestionsDB.instance.execute(<<-SQL, @body, @question_id, @parent_reply_id, @user_id, @id)
+      UPDATE
+        replies
+      SET
+        body = ?, question_id = ?, parent_reply_id = ?, user_id = ?
+      WHERE
+        id = ?
+    SQL
+  end
+
+  def insert
+    QuestionsDB.instance.execute(<<-SQL, @body, @question_id, @parent_reply_id, @user_id)
+      INSERT INTO
+        replies (body, question_id, parent_reply_id, user_id)
+      VALUES
+        (?, ?, ?, ?)
+    SQL
+
+    @id = QuestionsDB.instance.last_insert_row_id
   end
 
 
