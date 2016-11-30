@@ -1,6 +1,6 @@
 require_relative 'questions_db'
 
-class User
+class User < ModelBase
   attr_accessor :fname, :lname
   attr_reader :id
 
